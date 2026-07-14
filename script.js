@@ -7,7 +7,6 @@ const observerOptions = {
 const observer = new IntersectionObserver(function(entries) {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            // Add a slight delay for staggered animations
             const delay = entry.target.getAttribute('data-delay') || 0;
             setTimeout(() => {
                 entry.target.classList.remove('hidden');
@@ -23,8 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const hiddenElements = document.querySelectorAll('.hidden');
     
     hiddenElements.forEach((element, index) => {
-        // Add staggered delay for cards
-        if (element.classList.contains('feature-card') || element.classList.contains('gallery-item')) {
+        if (element.classList.contains('product-card') || element.classList.contains('pricing-card')) {
             element.setAttribute('data-delay', index * 100);
         }
         observer.observe(element);
@@ -45,17 +43,95 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Form submission handler
-const contactForm = document.querySelector('.contact-form');
-if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Thank you for your message! We will get back to you soon.');
-        this.reset();
-    });
+// Shopping Cart
+let cart = [];
+
+function orderProduct(productName, price) {
+    cart.push({ name: productName, price: price });
+    updateCart();
+    document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+    alert('✅ ' + productName + ' added to cart!');
 }
 
-// Add animation to elements on page load
+function updateCart() {
+    let cartHTML = '';
+    let total = 0;
+    
+    cart.forEach((item, index) => {
+        cartHTML += `<div class="cart-item">
+            <span>${item.name} - $${item.price}</span>
+            <button onclick="removeFromCart(${index})" style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Remove</button>
+        </div>`;
+        total += item.price;
+    });
+    
+    document.getElementById('cartItems').innerHTML = cartHTML || '<p style="color: #999;">Your cart is empty</p>';
+    document.getElementById('totalPrice').textContent = total;
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCart();
+}
+
+function whatsappOrder() {
+    if (cart.length === 0) {
+        alert('❌ Please add items to your cart first!');
+        return;
+    }
+    
+    let message = '🛍️ *ORDER REQUEST*\n\n';
+    let total = 0;
+    
+    cart.forEach(item => {
+        message += `• ${item.name} - $${item.price}\n`;
+        total += item.price;
+    });
+    
+    message += `\n*Total: $${total}*\n\nPlease confirm this order. Thank you! 🙏`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappNumber = '1234567890'; // Replace with your WhatsApp number (without +)
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+}
+
+function emailOrder() {
+    if (cart.length === 0) {
+        alert('❌ Please add items to your cart first!');
+        return;
+    }
+    
+    let message = 'ORDER REQUEST\n\n';
+    let total = 0;
+    
+    cart.forEach(item => {
+        message += `• ${item.name} - $${item.price}\n`;
+        total += item.price;
+    });
+    
+    message += `\nTotal: $${total}\n\nPlease confirm this order. Thank you!`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const email = 'your-email@example.com'; // Replace with your email
+    window.open(`mailto:${email}?subject=New%20Order&body=${encodedMessage}`, '_blank');
+}
+
+function phoneOrder() {
+    if (cart.length === 0) {
+        alert('❌ Please add items to your cart first!');
+        return;
+    }
+    
+    let orderDetails = 'I would like to order: ';
+    cart.forEach(item => {
+        orderDetails += `${item.name} ($${item.price}), `;
+    });
+    
+    const phoneNumber = '1234567890'; // Replace with your phone number
+    window.location.href = `tel:${phoneNumber}`;
+}
+
 window.addEventListener('load', function() {
-    console.log('✨ Reveal Animation Website Loaded Successfully!');
+    console.log('🛍️ Shop Website Loaded Successfully!');
+    updateCart();
 });
